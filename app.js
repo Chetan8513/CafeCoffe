@@ -741,7 +741,7 @@ function buildGmailComposeUrl(subject, body) {
   composeUrl.searchParams.set('to', appConfig.myEmail);
   composeUrl.searchParams.set('su', subject);
   composeUrl.searchParams.set('body', body);
-  return composeUrl.toString();
+  return composeUrl.toString().replace(/\+/g, '%20');
 }
 
 function buildGmailAppUrl(subject, body) {
@@ -750,7 +750,7 @@ function buildGmailAppUrl(subject, body) {
     subject,
     body,
   });
-  return `googlegmail://co?${composeParams.toString()}`;
+  return `googlegmail://co?${composeParams.toString().replace(/\+/g, '%20')}`;
 }
 
 function buildGmailAndroidIntentUrl(subject, body, composeUrl) {
@@ -759,7 +759,8 @@ function buildGmailAndroidIntentUrl(subject, body, composeUrl) {
     body,
   });
   const fallbackUrl = encodeURIComponent(composeUrl);
-  return `intent:${encodeURIComponent(appConfig.myEmail)}?${mailtoParams.toString()}#Intent;scheme=mailto;action=android.intent.action.SENDTO;package=com.google.android.gm;S.browser_fallback_url=${fallbackUrl};end`;
+  const encodedParams = mailtoParams.toString().replace(/\+/g, '%20');
+  return `intent:${encodeURIComponent(appConfig.myEmail)}?${encodedParams}#Intent;scheme=mailto;action=android.intent.action.SENDTO;package=com.google.android.gm;S.browser_fallback_url=${fallbackUrl};end`;
 }
 
 function buildConfirmationEmailUrl() {
@@ -768,27 +769,33 @@ function buildConfirmationEmailUrl() {
   const place = state.selectedPlace ? state.selectedPlace.name : 'A cozy café nearby';
   const address = state.selectedPlace?.address || 'Pune';
   const mapsLink = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${place} ${address}`)}`;
-  const weather = state.weather || 'Weather info not available';
-  const note = state.note ? `Note: ${state.note}` : 'Note: No extra note';
+  const weather = state.weather.toLowerCase().includes('unavailable')
+    ? 'Forecast unavailable right now'
+    : state.weather || 'Forecast unavailable right now';
+  const note = state.note.trim() || 'No extra note added';
 
-  const subject = `☕ ${appConfig.herName} said YES! ${date} at ${time}`;
+  const subject = `☕ A coffee date with ${appConfig.herName} | ${date} at ${time}`;
   const body = [
     'Hi Chetan,',
     '',
-    `${appConfig.herName} said yes to coffee! 🎉`,
+    `A little happy news: ${appConfig.herName} said yes to coffee! ☕`,
     '',
-    `Vibe: ${state.vibe}`,
-    `Date: ${date}`,
-    `Time: ${time}`,
-    `Place: ${place}`,
-    `Address: ${address}`,
-    `Map: ${mapsLink}`,
-    `Weather: ${weather}`,
-    note,
+    'Here is the plan for our catch-up:',
     '',
-    'Please let me know if this works for you.',
+    'OUR COFFEE DATE',
+    `Vibe        ${state.vibe}`,
+    `Date        ${date}`,
+    `Time        ${time}`,
+    `Place       ${place}`,
+    `Address     ${address}`,
+    `Map         ${mapsLink}`,
+    `Forecast    ${weather}`,
     '',
-    'Thanks!',
+    `A little note: ${note}`,
+    '',
+    'Looking forward to a warm drink and a lovely conversation.',
+    '',
+    'Warmly,',
     appConfig.herName,
   ].join('\n');
 
