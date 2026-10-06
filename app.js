@@ -754,13 +754,12 @@ function buildGmailAppUrl(subject, body) {
 }
 
 function buildGmailAndroidIntentUrl(subject, body, composeUrl) {
-  const composeParams = new URLSearchParams({
-    to: appConfig.myEmail,
+  const mailtoParams = new URLSearchParams({
     subject,
     body,
   });
   const fallbackUrl = encodeURIComponent(composeUrl);
-  return `intent://co?${composeParams.toString()}#Intent;scheme=googlegmail;package=com.google.android.gm;S.browser_fallback_url=${fallbackUrl};end`;
+  return `intent:${encodeURIComponent(appConfig.myEmail)}?${mailtoParams.toString()}#Intent;scheme=mailto;action=android.intent.action.SENDTO;package=com.google.android.gm;S.browser_fallback_url=${fallbackUrl};end`;
 }
 
 function buildConfirmationEmailUrl() {
