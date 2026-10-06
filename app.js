@@ -753,6 +753,16 @@ function buildGmailAppUrl(subject, body) {
   return `googlegmail://co?${composeParams.toString()}`;
 }
 
+function buildGmailAndroidIntentUrl(subject, body, composeUrl) {
+  const composeParams = new URLSearchParams({
+    to: appConfig.myEmail,
+    subject,
+    body,
+  });
+  const fallbackUrl = encodeURIComponent(composeUrl);
+  return `intent://co?${composeParams.toString()}#Intent;scheme=googlegmail;package=com.google.android.gm;S.browser_fallback_url=${fallbackUrl};end`;
+}
+
 function buildConfirmationEmailUrl() {
   const date = formatDateForDisplay(state.date);
   const time = formatTimeDisplay(state.time);
@@ -807,7 +817,10 @@ function sendConfirmationEmail() {
   };
 
   document.addEventListener('visibilitychange', handleVisibilityChange);
-  window.location.href = buildGmailAppUrl(subject, body);
+  const appUrl = /Android/i.test(navigator.userAgent)
+    ? buildGmailAndroidIntentUrl(subject, body, composeUrl)
+    : buildGmailAppUrl(subject, body);
+  window.location.href = appUrl;
   fallbackTimer = setTimeout(() => {
     document.removeEventListener('visibilitychange', handleVisibilityChange);
     if (document.visibilityState === 'visible') {
