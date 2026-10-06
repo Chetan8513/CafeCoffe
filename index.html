@@ -20,7 +20,7 @@
       integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
       crossorigin=""
     />
-    <link rel="stylesheet" href="./styles.css?v=3" />
+    <link rel="stylesheet" href="./styles.css?v=5" />
   </head>
   <body>
     <div class="background-glow glow-one"></div>
@@ -68,6 +68,9 @@
             <button id="yesBtn" class="choice-btn yes-btn" type="button">Yes</button>
             <button id="noBtn" class="choice-btn no-btn" type="button" aria-label="No">No</button>
           </div>
+          <button id="soundToggleBtn" class="sound-toggle" type="button" aria-pressed="true">
+            Sound on
+          </button>
 
           <p id="noResponse" class="no-response hidden" aria-live="polite"></p>
           <button id="maybeLaterBtn" class="text-link hidden" type="button">Maybe later</button>
@@ -185,6 +188,6 @@
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <script type="module" src="./app.js?v=9"></script>
+    <script type="module" src="./app.js?v=11"></script>
   </body>
 </html>

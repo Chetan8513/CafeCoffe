@@ -3,6 +3,7 @@ import { appConfig } from './data/config.js';
 const state = {
   screen: 'ticket',
   noAttempts: 0,
+  soundEnabled: loadSoundPreference(),
   currentStep: 0,
   vibe: 'Coffee',
   selectedPlace: null,
@@ -21,6 +22,7 @@ const elements = {
   questionText: document.getElementById('questionText'),
   yesBtn: document.getElementById('yesBtn'),
   noBtn: document.getElementById('noBtn'),
+  soundToggleBtn: document.getElementById('soundToggleBtn'),
   noResponse: document.getElementById('noResponse'),
   maybeLaterBtn: document.getElementById('maybeLaterBtn'),
   goodbyeScreen: document.getElementById('goodbyeScreen'),
@@ -58,6 +60,60 @@ let mapInstance = null;
 let mapMarkers = [];
 let confettiParticles = [];
 let typingTimer = null;
+let audioContext = null;
+
+function loadSoundPreference() {
+  try {
+    return localStorage.getItem('cafeclick-sound') !== 'off';
+  } catch {
+    return true;
+  }
+}
+
+function updateSoundToggle() {
+  const label = state.soundEnabled ? 'Sound on' : 'Sound off';
+  elements.soundToggleBtn.textContent = label;
+  elements.soundToggleBtn.setAttribute('aria-pressed', String(state.soundEnabled));
+  elements.soundToggleBtn.setAttribute('aria-label', `Turn sound ${state.soundEnabled ? 'off' : 'on'}`);
+}
+
+function playChoiceSound(choice) {
+  if (!state.soundEnabled) return;
+
+  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextClass) return;
+
+  try {
+    audioContext ||= new AudioContextClass();
+    if (audioContext.state === 'suspended') {
+      audioContext.resume().catch(() => {});
+    }
+
+    const notes = choice === 'yes'
+      ? [{ frequency: 587.33, delay: 0 }, { frequency: 783.99, delay: 0.1 }, { frequency: 987.77, delay: 0.2 }]
+      : [{ frequency: 440, delay: 0 }, { frequency: 392, delay: 0.12 }];
+    const now = audioContext.currentTime;
+
+    notes.forEach(({ frequency, delay }) => {
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      const startAt = now + delay;
+      const duration = 0.16;
+
+      oscillator.type = 'sine';
+      oscillator.frequency.setValueAtTime(frequency, startAt);
+      gain.gain.setValueAtTime(0.0001, startAt);
+      gain.gain.exponentialRampToValueAtTime(choice === 'yes' ? 0.045 : 0.028, startAt + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, startAt + duration);
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+      oscillator.start(startAt);
+      oscillator.stop(startAt + duration);
+    });
+  } catch {
+    return;
+  }
+}
 
 function showScreen(screenName) {
   state.screen = screenName;
@@ -144,10 +200,54 @@ function resetNoChoice() {
   state.noAttempts = 0;
   elements.noBtn.textContent = 'No';
   elements.noBtn.classList.remove('hidden');
+  elements.noBtn.classList.remove('is-floating', 'is-dodging');
+  elements.noBtn.style.removeProperty('left');
+  elements.noBtn.style.removeProperty('top');
+  elements.noBtn.style.removeProperty('right');
+  elements.choiceStage.classList.remove('no-dodging');
   elements.noResponse.textContent = '';
   elements.noResponse.classList.add('hidden');
   elements.noResponse.classList.remove('blink');
   elements.maybeLaterBtn.classList.add('hidden');
+}
+
+function dodgeNoButton() {
+  const stageRect = elements.choiceStage.getBoundingClientRect();
+  const buttonRect = elements.noBtn.getBoundingClientRect();
+  const yesRect = elements.yesBtn.getBoundingClientRect();
+  const maxLeft = Math.max(0, elements.choiceStage.clientWidth - elements.noBtn.offsetWidth);
+  const maxTop = Math.max(0, elements.choiceStage.clientHeight - elements.noBtn.offsetHeight);
+  const positions = [
+    { left: maxLeft, top: maxTop },
+    { left: maxLeft, top: 0 },
+    { left: 0, top: maxTop },
+    { left: Math.round(maxLeft * 0.55), top: Math.round(maxTop * 0.45) },
+  ];
+  const yesLeft = yesRect.left - stageRect.left;
+  const yesTop = yesRect.top - stageRect.top;
+  const avoidsYes = ({ left, top }) => (
+    left + elements.noBtn.offsetWidth + 10 <= yesLeft
+    || left >= yesLeft + yesRect.width + 10
+    || top + elements.noBtn.offsetHeight + 10 <= yesTop
+    || top >= yesTop + yesRect.height + 10
+  );
+  const availablePositions = positions.filter((position) => (
+    avoidsYes(position)
+    && (Math.abs(position.left - (buttonRect.left - stageRect.left)) > 20
+      || Math.abs(position.top - (buttonRect.top - stageRect.top)) > 20)
+  ));
+  const choices = availablePositions.length ? availablePositions : positions;
+  const nextPosition = choices[(state.noAttempts - 1) % choices.length];
+  const currentLeft = buttonRect.left - stageRect.left;
+  const currentTop = buttonRect.top - stageRect.top;
+
+  elements.noBtn.style.right = 'auto';
+  elements.noBtn.style.left = `${currentLeft}px`;
+  elements.noBtn.style.top = `${currentTop}px`;
+  elements.noBtn.offsetWidth;
+  elements.noBtn.classList.add('is-dodging');
+  elements.noBtn.style.left = `${nextPosition.left}px`;
+  elements.noBtn.style.top = `${nextPosition.top}px`;
 }
 
 function handleNoChoice() {
@@ -161,7 +261,14 @@ function handleNoChoice() {
   ];
 
   if (state.noAttempts < responses.length) {
-    elements.noBtn.textContent = responses[state.noAttempts];
+    elements.noResponse.textContent = responses[state.noAttempts];
+    elements.noResponse.classList.remove('hidden');
+    if (state.noAttempts === 0) {
+      elements.choiceStage.classList.add('no-dodging');
+      elements.noBtn.classList.add('is-floating');
+    } else {
+      dodgeNoButton();
+    }
     state.noAttempts += 1;
     return;
   }
@@ -855,17 +962,35 @@ function bindConfirmationEvents() {
 }
 
 function bindTicketAndQuestionEvents() {
-  elements.unlockTicketBtn.addEventListener('click', () => {
-    resetNoChoice();
-    elements.ticketCard.classList.add('is-open');
-    navigator.vibrate?.(30);
-    setTimeout(() => showScreen('question'), 700);
-    setTimeout(() => animateTypewriter(), 1100);
+  elements.soundToggleBtn.addEventListener('click', () => {
+    state.soundEnabled = !state.soundEnabled;
+    updateSoundToggle();
+    try {
+      localStorage.setItem('cafeclick-sound', state.soundEnabled ? 'on' : 'off');
+    } catch {}
   });
 
-  elements.yesBtn.addEventListener('click', advanceToPlan);
+  elements.unlockTicketBtn.addEventListener('click', () => {
+    resetNoChoice();
+    elements.unlockTicketBtn.disabled = true;
+    elements.ticketCard.classList.add('is-opening');
+    try {
+      navigator.vibrate?.(30);
+    } catch {}
+    const revealDuration = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 1350;
+    setTimeout(() => showScreen('question'), revealDuration);
+    setTimeout(() => animateTypewriter(), revealDuration + 250);
+  });
 
-  elements.noBtn.addEventListener('click', handleNoChoice);
+  elements.yesBtn.addEventListener('click', () => {
+    playChoiceSound('yes');
+    advanceToPlan();
+  });
+
+  elements.noBtn.addEventListener('click', () => {
+    playChoiceSound('no');
+    handleNoChoice();
+  });
 
   elements.maybeLaterBtn.addEventListener('click', () => {
     showScreen('goodbye');
@@ -878,6 +1003,7 @@ function bindTicketAndQuestionEvents() {
 }
 
 function init() {
+  updateSoundToggle();
   setDefaultDate();
   bindTicketAndQuestionEvents();
   bindPlanEvents();
