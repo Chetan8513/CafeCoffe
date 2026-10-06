@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A coffee invitation for Tejashri."
+    />
+    <title>Coffee with Tejashri</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin=""
+    />
+    <link rel="stylesheet" href="./styles.css?v=3" />
+  </head>
+  <body>
+    <div class="background-glow glow-one"></div>
+    <div class="background-glow glow-two"></div>
+    <div class="floating-particles" aria-hidden="true">
+      <span class="particle particle-1"></span>
+      <span class="particle particle-2"></span>
+      <span class="particle particle-3"></span>
+      <span class="particle particle-4"></span>
+      <span class="particle particle-5"></span>
+      <span class="particle particle-6"></span>
+      <span class="particle particle-7"></span>
+      <span class="particle particle-8"></span>
+    </div>
+
+    <main class="app-shell" aria-live="polite">
+      <section id="ticketScreen" class="screen active" aria-label="Invitation ticket screen">
+        <div class="ticket-wrapper">
+          <div id="ticketCard" class="ticket-card">
+            <div class="ticket-inner">
+              <div class="ticket-header">
+                <span class="badge">Café Invitation</span>
+                <span class="ticket-mark">✦</span>
+              </div>
+              <h1>A special invitation for<br /><strong>Tejashri</strong> ☕</h1>
+              <p>For a warm conversation, a little magic, and a slow coffee date.</p>
+              <div class="seal-wrap">
+                <button id="unlockTicketBtn" class="seal" type="button" aria-label="Tap to unlock ticket">
+                  <span class="seal-bubble"></span>
+                  <span class="seal-text">Tap to unlock</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="questionScreen" class="screen" aria-label="Question screen">
+        <div class="question-card card-shell">
+          <div class="tiny-label">A tiny question</div>
+          <div id="typewriterLine" class="typewriter" aria-live="polite"></div>
+          <h2 id="questionText">Will you have coffee with me?</h2>
+
+          <div id="choiceStage" class="choice-stage" aria-label="Yes or no choice">
+            <button id="yesBtn" class="choice-btn yes-btn" type="button">Yes</button>
+            <button id="noBtn" class="choice-btn no-btn" type="button" aria-label="No">No</button>
+          </div>
+
+          <p id="noResponse" class="no-response hidden" aria-live="polite"></p>
+          <button id="maybeLaterBtn" class="text-link hidden" type="button">Maybe later</button>
+        </div>
+      </section>
+
+      <section id="goodbyeScreen" class="screen" aria-label="Goodbye screen">
+        <div class="goodbye-card card-shell">
+          <div class="tiny-label">No pressure</div>
+          <h2>Thanks for being honest with me.</h2>
+          <p>
+            I’d still love to catch up someday over coffee, chai, or a quiet walk. No pressure,
+            no guilt—just a warm hello when the moment feels right.
+          </p>
+          <button id="goodbyeBackBtn" class="primary-btn" type="button">Back</button>
+        </div>
+      </section>
+
+      <section id="planScreen" class="screen" aria-label="Plan builder screen">
+        <div class="plan-card card-shell">
+          <div class="plan-header">
+            <div class="tiny-label">Coffee date</div>
+            <button id="planBackBtn" class="ghost-btn" type="button">Back</button>
+          </div>
+
+          <div class="progress-dots" aria-label="Plan progress">
+            <span class="dot active" data-step="0"></span>
+            <span class="dot" data-step="1"></span>
+            <span class="dot" data-step="2"></span>
+          </div>
+
+          <div class="step-panel active" data-step="0">
+            <h3>Pick the vibe</h3>
+            <div class="chip-grid" id="vibeOptions">
+              <button type="button" class="chip selected" data-vibe="Coffee">Coffee</button>
+              <button type="button" class="chip" data-vibe="Chai">Chai</button>
+              <button type="button" class="chip" data-vibe="Dessert">Dessert</button>
+              <button type="button" class="chip" data-vibe="Walk & chat">Walk &amp; chat</button>
+            </div>
+          </div>
+
+          <div class="step-panel" data-step="1">
+            <h3>Choose a place</h3>
+            <div class="location-tools">
+              <button id="useLocationBtn" class="primary-btn" type="button">Use my location</button>
+              <div class="field-wrap">
+                <label class="sr-only" for="placeSearch">Search a café</label>
+                <input id="placeSearch" type="search" placeholder="Search nearby cafés..." />
+              </div>
+            </div>
+
+            <div id="mapContainer" class="map-container">
+              <div id="placeMap" aria-label="Map of nearby café choices"></div>
+            </div>
+
+            <div id="placeList" class="place-list" aria-live="polite"></div>
+          </div>
+
+          <div class="step-panel" data-step="2">
+            <h3>Set the date &amp; time</h3>
+            <div class="field-wrap">
+              <label for="dateInput">Date</label>
+              <input id="dateInput" type="date" min="" />
+            </div>
+
+            <div class="time-picker">
+              <button type="button" class="time-chip selected" data-time="5:30 PM">5:30 PM</button>
+              <button type="button" class="time-chip" data-time="6:30 PM">6:30 PM</button>
+              <button type="button" class="time-chip" data-time="7:00 PM">7:00 PM</button>
+              <button type="button" class="time-chip" data-time="8:00 PM">8:00 PM</button>
+            </div>
+
+            <div class="weather-panel">
+              <div class="tiny-label">Forecast</div>
+              <p id="forecastText">Choose a date and place to see the weather.</p>
+            </div>
+
+            <div class="field-wrap">
+              <label for="noteInput">Optional note</label>
+              <textarea id="noteInput" rows="3" placeholder="Something sweet or spontaneous..."></textarea>
+            </div>
+          </div>
+
+          <div class="plan-actions">
+            <button id="planPrevBtn" class="ghost-btn" type="button">Previous</button>
+            <button id="planNextBtn" class="primary-btn" type="button">Next</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="confirmationScreen" class="screen" aria-label="Confirmation screen">
+        <div class="confirmation-card card-shell">
+          <canvas id="confettiCanvas" aria-hidden="true"></canvas>
+          <div class="tiny-label success-label">It’s a yes!</div>
+          <h2>Tejashri ☕</h2>
+
+          <div class="summary-card">
+            <div class="summary-line"><span>Vibe</span><strong id="summaryVibe">Coffee</strong></div>
+            <div class="summary-line"><span>Date</span><strong id="summaryDate">—</strong></div>
+            <div class="summary-line"><span>Time</span><strong id="summaryTime">—</strong></div>
+            <div class="summary-line"><span>Place</span><strong id="summaryPlace">—</strong></div>
+          </div>
+
+          <p id="aiComment" class="ai-comment">A slow coffee date sounds like the perfect little chapter.</p>
+
+          <div class="confirmation-actions">
+            <button id="calendarBtn" class="primary-btn" type="button">Add to calendar</button>
+            <button id="mapsBtn" class="secondary-btn" type="button">Open in Maps</button>
+          </div>
+
+          <div id="emailStatus" class="email-status">Sending your plan...</div>
+          <button id="whatsappFallbackBtn" class="secondary-btn hidden" type="button">Send via WhatsApp</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script type="module" src="./app.js?v=5"></script>
+  </body>
+</html>
