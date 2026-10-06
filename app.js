@@ -15,6 +15,7 @@ const state = {
 };
 
 const elements = {
+  themeToggleBtn: document.getElementById('themeToggleBtn'),
   ticketCard: document.getElementById('ticketCard'),
   unlockTicketBtn: document.getElementById('unlockTicketBtn'),
   questionScreen: document.getElementById('questionScreen'),
@@ -61,6 +62,25 @@ let mapMarkers = [];
 let confettiParticles = [];
 let typingTimer = null;
 let audioContext = null;
+
+function applyTheme(theme) {
+  const isDark = theme === 'dark';
+  document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
+  elements.themeToggleBtn.setAttribute('aria-pressed', String(isDark));
+  elements.themeToggleBtn.setAttribute('aria-label', 'Toggle dark mode');
+  elements.themeToggleBtn.title = `Switch to ${isDark ? 'light' : 'dark'} mode`;
+}
+
+function bindThemeToggle() {
+  applyTheme(document.documentElement.dataset.theme || 'light');
+  elements.themeToggleBtn.addEventListener('click', () => {
+    const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+    applyTheme(nextTheme);
+    try {
+      localStorage.setItem('cafeclick-theme', nextTheme);
+    } catch {}
+  });
+}
 
 function loadSoundPreference() {
   try {
@@ -665,7 +685,9 @@ function buildAiComment() {
 function launchConfetti() {
   const canvas = elements.confettiCanvas;
   const context = canvas.getContext('2d');
-  const colors = ['#f7d58b', '#f0b54f', '#ffefe1', '#c97d6d', '#9cc0bf'];
+  const themeStyles = getComputedStyle(document.documentElement);
+  const colors = ['--gold', '--confetti-gold', '--confetti-cream', '--confetti-rose', '--confetti-cool']
+    .map((token) => themeStyles.getPropertyValue(token).trim());
   const pieceCount = 140;
 
   const resize = () => {
@@ -1003,6 +1025,7 @@ function bindTicketAndQuestionEvents() {
 }
 
 function init() {
+  bindThemeToggle();
   updateSoundToggle();
   setDefaultDate();
   bindTicketAndQuestionEvents();
