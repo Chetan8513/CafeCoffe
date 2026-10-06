@@ -25,5 +25,5 @@ export const appConfig = {
     },
   ],
   palette: 'rose',
-  aiFallbackComment: 'A coffee date with Tejashri sounds like the perfect little chapter.',
+  aiFallbackComment: 'A coffee meet with Tejashri sounds like the perfect little chapter.',
 };

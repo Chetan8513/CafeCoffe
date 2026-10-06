@@ -616,7 +616,7 @@ function buildCalendarEntry() {
       .replace(/\.\d{3}Z$/, 'Z');
 
   const mapQuery = encodeURIComponent(`${state.selectedPlace?.name || 'Coffee place'} ${state.selectedPlace?.address || 'Pune'}`);
-  const description = `Coffee date with ${appConfig.herName}. Vibe: ${state.vibe}. Note: ${state.note || 'No notes'}.`;
+  const description = `Coffee meet with ${appConfig.herName}. Vibe: ${state.vibe}. Note: ${state.note || 'No notes'}.`;
 
   return `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nUID:coffee-${Date.now()}@cafeclick\nDTSTAMP:${formatIcsDate(new Date())}\nDTSTART:${formatIcsDate(dateValue)}\nDTEND:${formatIcsDate(endDate)}\nSUMMARY:Coffee with ${appConfig.herName}\nLOCATION:${state.selectedPlace?.name || 'A cozy café'}\nDESCRIPTION:${description}\nURL:https://www.google.com/maps/search/?api=1&query=${mapQuery}\nEND:VEVENT\nEND:VCALENDAR`;
 }
@@ -642,7 +642,7 @@ function downloadCalendarFile() {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
   anchor.href = url;
-  anchor.download = 'coffee-date.ics';
+  anchor.download = 'coffee-meet.ics';
   anchor.click();
   URL.revokeObjectURL(url);
 }
@@ -722,7 +722,7 @@ function buildEmailTemplatePayload() {
     emoji: '☕',
     badge: 'Invitation accepted',
     headline: `${appConfig.herName} said YES! 🎉`,
-    subline: 'Your coffee date is officially on.',
+    subline: 'Your coffee meet is officially on.',
     answer_html: answerHtml,
     note,
     maps_button: `<a href="${mapsLink}" style="display:inline-block;background:#ffffff;color:${palette.ink};text-decoration:none;font-weight:600;padding:13px 26px;border:2px solid ${palette.accent};border-radius:999px;font-size:15px;margin:5px;">📍 Open in Maps</a>`,
@@ -774,7 +774,7 @@ function buildConfirmationEmailUrl() {
     : state.weather || 'Forecast unavailable right now';
   const note = state.note.trim() || 'No extra note added';
 
-  const subject = `☕ A coffee date with ${appConfig.herName} | ${date} at ${time}`;
+  const subject = `☕ A coffee meet with ${appConfig.herName} | ${date} at ${time}`;
   const body = [
     'Hi Chetan,',
     '',
@@ -782,7 +782,7 @@ function buildConfirmationEmailUrl() {
     '',
     'Here is the plan for our catch-up:',
     '',
-    'OUR COFFEE DATE',
+    'OUR COFFEE MEET',
     `Vibe        ${state.vibe}`,
     `Date        ${date}`,
     `Time        ${time}`,
